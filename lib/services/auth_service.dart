@@ -3,18 +3,30 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthService {
   final SupabaseClient _client = Supabase.instance.client;
 
+  // login method
   Future<AuthResponse> signIn(String email, String password) async {
+
+    print('X. AuthService.signIn called with email: $email');
+
+
     try {
+      print('Y. Attempting signInWithPassowrd');
       final response = await _client.auth.signInWithPassword(
         email: email,
         password: password,
       );
+
+     
+      print('Z. SignIn Successful - User: ${response.user?.email}, Session: ${response.session != null}');
       return response;
     } catch (e) {
-      rethrow;
+      print('Z-error. Sign-in failed: $e');
+       rethrow;
+      
     }
   }
 
+  //logout method
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
@@ -23,10 +35,17 @@ class AuthService {
     }
   }
 
+  // get current user
   User? getCurrentUser() {
     return _client.auth.currentUser;
   }
 
+  // get current session
+  Future<Session?> getCurrentSession() async{
+    return _client.auth.currentSession;
+  }
+
+  //get user role
   Future<String?> getUserRole(String userId) async {
     try {
       final response = await _client
@@ -38,7 +57,10 @@ class AuthService {
 
       return response['role'] as String?;
     } catch (e) {
+      print('Error getting user role: $e'); 
       return 'student';
     }
   }
+
+  
 }

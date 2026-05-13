@@ -12,11 +12,13 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+
     super.dispose();
   }
 
@@ -45,6 +47,8 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
+                    child: Form(
+                      key: _formKey,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -109,6 +113,7 @@ class _LoginViewState extends State<LoginView> {
                       ],
                     ),
                   ),
+                )
                 );
               },
             ),
@@ -119,21 +124,32 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Widget _buildEmailField() {
-    return TextField(
+    return TextFormField(
       keyboardType: TextInputType.emailAddress,
       controller: _emailController,
+      
       decoration: InputDecoration(
         labelText: 'Email',
         prefixIcon: const Icon(Icons.email),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
         ),
+        
       ),
+      validator: (value){
+        if (value == null || value.isEmpty) {
+          return 'Please enter your email';
+        }
+        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+          return 'Please enter a valid email address';
+        }
+        return null;
+      },
     );
   }
 
   Widget _buildPasswordField() {
-    return TextField(
+    return TextFormField(
       obscureText: true,
       controller: _passwordController,
       decoration: InputDecoration(
@@ -143,6 +159,15 @@ class _LoginViewState extends State<LoginView> {
           borderRadius: BorderRadius.circular(8),
         ),
       ),
+      validator: (value){
+        if (value == null || value.isEmpty) {
+          return 'Please enter your password';
+        }
+        if (value.length < 6) {
+          return 'Password must be at least 6 characters';
+        }
+        return null;
+      },
     );
   }
 
@@ -154,16 +179,36 @@ class _LoginViewState extends State<LoginView> {
             ? null
             : () async {
                 // Handle login action
+                print('1. Login button pressed');
+                if(_formKey.currentState == null){
+                  print('2. Form state is null - waiting');
 
-                final email = _emailController.text;
-                final password = _passwordController.text;
-
-                final success = await authViewModel.logIn(email, password);
-                if (success && context.mounted) {
-                  // Navigate to the appropriate screen based on role
-                  // The AuthWrapper will handle the redirection based on the user's role, so we just need to pop the login screen if it's still in the stack
+                  await Future.delayed(const Duration(milliseconds: 100));
                 }
+
+                if (_formKey.currentState != null && _formKey.currentState!.validate()){
+                  print('3. Form validation passed');
+                  print('4. Email: ${_emailController.text}, Password: ${_passwordController.text}');
+
+                  final success = await authViewModel.logIn(
+                    _emailController.text.trim(),
+                    _passwordController.text,
+                  );
+
+                  print('5. Login result: $success');
+
+                  if (success && context.mounted){
+                    print('6. Navigating to student home screen');
+                    _emailController.clear();
+                    _passwordController.clear();
+                    Navigator.pushReplacementNamed(context, '/student/home');
+                  } else {
+                    print('3b. Form validation failed or form state is null');
+                  }
+                }
+                
               },
+                
         style: ElevatedButton.styleFrom(  
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
