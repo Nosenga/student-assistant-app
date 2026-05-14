@@ -170,8 +170,8 @@ class _LoginViewState extends State<LoginView> {
       },
     );
   }
-
-  Widget _buildLoginButton(BuildContext context, AuthViewModel authViewModel) {
+//Handles user authentication and login validation
+  Widget _buildLoginButton(BuildContext context, AuthViewModel authViewModel)  {
   return SizedBox(
     width: double.infinity,
     child: ElevatedButton(
@@ -179,7 +179,7 @@ class _LoginViewState extends State<LoginView> {
           ? null
           : () async {
               print('1. Login button pressed');
-              if (_formKey.currentState == null) {
+              if (_formKey.currentState == null)  {
                 print('2. Form state is null - waiting');
                 await Future.delayed(const Duration(milliseconds: 100));
               }
