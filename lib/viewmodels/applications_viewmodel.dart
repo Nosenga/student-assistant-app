@@ -79,10 +79,12 @@ class ApplicationsViewModel extends ChangeNotifier {
 
   //Update status (Admin)
   Future<void> updateStatus(String applicationID, String newStatus) async {
-    
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
     try {
-      await _applicationService.updateApplicationStatus(applicationID as int, newStatus);
+      await _applicationService.updateApplicationStatus(applicationID, newStatus);
       // After updating status, refresh the applications list
       await loadAllApplications();
       
@@ -97,8 +99,12 @@ class ApplicationsViewModel extends ChangeNotifier {
 
   //Delete application (Admin)
   Future<void> deleteApplication(String applicationID) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
-      await _applicationService.deleteApplication(applicationID as int);
+      await _applicationService.deleteApplication(applicationID);
       // After deleting, refresh the applications list
       await loadAllApplications();
       

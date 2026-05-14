@@ -9,7 +9,6 @@ class ApplicationService {
   Future<Map<String, dynamic>> submitApplication({
     required String userId,
     required String yearOfStudy,
-    //required bool eligilibilityConfirmed,
     required List<Map<String, dynamic>> modules,
   }) async {
 
@@ -17,7 +16,6 @@ class ApplicationService {
     final applicationResponse = await _client.from('applications').insert({
       'user_id': userId,
       'year_of_study': yearOfStudy,
-      //'eligilibility_confirmed': eligilibilityConfirmed,
       'status': 'pending',
 
     }).select().single();
@@ -72,7 +70,7 @@ class ApplicationService {
   }
 
   //Update application status
-  Future<void> updateApplicationStatus(int applicationID, String newStatus) async {
+  Future<void> updateApplicationStatus(dynamic applicationID, String newStatus) async {
     await _client
     .from('applications')
     .update({'status': newStatus})
@@ -80,18 +78,10 @@ class ApplicationService {
   }
 
   //Delete application(cascade delete modules)
-  Future<void> deleteApplication(int applicationID) async {
+  Future<void> deleteApplication(dynamic applicationID) async {
     await _client
     .from('applications')
     .delete()
-    .eq('id', applicationID);
-  }
-
-  //Update applications (while pending)
-  Future<void> updateApplication(String applicationID, String newStatus) async{
-    await _client
-    .from('applications')
-    .update({'status':newStatus})
     .eq('id', applicationID);
   }
 
