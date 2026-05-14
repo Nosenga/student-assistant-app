@@ -117,7 +117,7 @@ class _EditApplicationState extends State<EditApplication> {
     }
 
     final success = await vm.updateApplication(
-      applicationID: _applicationID!,
+      applicationId: _applicationID!,
       yearOfStudy: _selectedYear!,
       modules: modules,
       eligibilityConfirmed: _eligibilityConfirmed,

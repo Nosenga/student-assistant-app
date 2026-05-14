@@ -1,7 +1,9 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:student_assistant_app/viewmodels/applications_viewmodel.dart';
+import 'package:student_assistant_app/services/application_service.dart';
 
 class ApplicationForm extends StatefulWidget {
   const ApplicationForm({super.key});
@@ -31,6 +33,12 @@ class _ApplicationFormState extends State<ApplicationForm> {
     'COS301 - Software Engineering',
     'COS302 - Operating Systems',
   ];
+
+  String? _documentURL;
+  bool _isUploading = false;
+  String? _selectedFileName;
+
+  //-----------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +108,62 @@ class _ApplicationFormState extends State<ApplicationForm> {
                 activeColor: Colors.blue.shade600,
               ),
               const SizedBox(height: 24),
+              // Add this after the eligibility CheckboxListTile
+
+
+              // File Upload Section
+              _buildSectionTitle('Supporting Documents', Icons.attach_file),
+              const SizedBox(height: 8),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _isUploading ? null : () => _uploadDocument(userId),
+                            icon: _isUploading 
+                            ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                              : const Icon(Icons.upload_file),
+                              label: Text(_isUploading ? 'Uploading...' : 'Upload Document'),
+                              style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey.shade200,
+                              foregroundColor: Colors.blue.shade600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    if (_selectedFileName != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                              _selectedFileName!,
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+
 
               Consumer<ApplicationsViewModel>(
                 builder: (context, vm, child) {
@@ -208,8 +272,9 @@ class _ApplicationFormState extends State<ApplicationForm> {
     final success = await vm.submit(
       userId: userId,
       yearOfStudy: _selectedYear!,
-      //eligilibilityConfirmed: _eligibilityConfirmed,
+      eligibilityConfirmed: _eligibilityConfirmed,
       modules: modules,
+      documentUrl: _documentURL,
       
     );
 
@@ -226,4 +291,71 @@ class _ApplicationFormState extends State<ApplicationForm> {
       );
     }
   }
+
+
+  Future<void> _uploadDocument(String userId) async {
+  try {
+    // Pick file with allowed extensions
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      type: FileType.custom,
+    );
+
+    if (result == null) {
+      print('📁 User cancelled file selection');
+      return;
+    }
+
+    final file = result.files.first;
+    print('📁 Selected file: ${file.name}, Size: ${file.size} bytes');
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('File too large. Max size is 5MB.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    // Check if bytes are available
+    if (file.bytes == null) {
+      throw Exception('Could not read file bytes');
+    }
+
+    setState(() {
+      _isUploading = true;
+      _selectedFileName = file.name;
+    });
+
+    // Upload to Supabase
+    final vm = context.read<ApplicationsViewModel>();
+    final url = await vm.uploadFile(
+      userId: userId,
+      fileName: file.name,
+      bytes: file.bytes!,
+    );
+
+    print('✅ Upload successful: $url');
+
+    setState(() {
+      _documentURL = url;
+      _isUploading = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Document uploaded successfully!'), backgroundColor: Colors.green),
+    );
+  } catch (e) {
+    print('❌ Upload error: $e');
+    setState(() {
+      _isUploading = false;
+      _selectedFileName = null;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error uploading document: ${e.toString().split('\n').first}'), backgroundColor: Colors.red),
+    );
+  }
+}
+
 }

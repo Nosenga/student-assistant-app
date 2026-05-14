@@ -172,60 +172,80 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Widget _buildLoginButton(BuildContext context, AuthViewModel authViewModel) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: authViewModel.isLoading
-            ? null
-            : () async {
-                // Handle login action
-                print('1. Login button pressed');
-                if(_formKey.currentState == null){
-                  print('2. Form state is null - waiting');
+  return SizedBox(
+    width: double.infinity,
+    child: ElevatedButton(
+      onPressed: authViewModel.isLoading
+          ? null
+          : () async {
+              print('1. Login button pressed');
+              if (_formKey.currentState == null) {
+                print('2. Form state is null - waiting');
+                await Future.delayed(const Duration(milliseconds: 100));
+              }
 
-                  await Future.delayed(const Duration(milliseconds: 100));
-                }
+              if (_formKey.currentState != null && _formKey.currentState!.validate()) {
+                print('3. Form validation passed');
+                print('4. Email: ${_emailController.text}, Password: ${_passwordController.text}');
 
-                if (_formKey.currentState != null && _formKey.currentState!.validate()){
-                  print('3. Form validation passed');
-                  print('4. Email: ${_emailController.text}, Password: ${_passwordController.text}');
+                final success = await authViewModel.logIn(
+                  _emailController.text.trim(),
+                  _passwordController.text,
+                );
 
-                  final success = await authViewModel.logIn(
-                    _emailController.text.trim(),
-                    _passwordController.text,
-                  );
+                print('5. Login result: $success');
 
-                  print('5. Login result: $success');
-
-                  if (success && context.mounted){
-                    print('6. Navigating to student home screen');
+                if (success && context.mounted) {
+                  print('6. Checking user role for navigation');
+                  
+                  // Get the current user ID
+                  final userId = authViewModel.getCurrentUser()?.id;
+                  
+                  if (userId != null) {
+                    // Get the user's role
+                    final role = await authViewModel.getUserRole(userId);
+                    print('7. User role: $role');
+                    
+                    _emailController.clear();
+                    _passwordController.clear();
+                    
+                    if (role == 'admin') {
+                      print('8. Navigating to Admin Dashboard');
+                      Navigator.pushReplacementNamed(context, '/admin/dashboard');
+                    } else {
+                      print('8. Navigating to Student Home');
+                      Navigator.pushReplacementNamed(context, '/student/home');
+                    }
+                  } else {
+                    print('7. No user ID found - fallback to Student Home');
                     _emailController.clear();
                     _passwordController.clear();
                     Navigator.pushReplacementNamed(context, '/student/home');
-                  } else {
-                    print('3b. Form validation failed or form state is null');
                   }
+                } else {
+                  print('5b. Login failed');
                 }
-                
-              },
-                
-        style: ElevatedButton.styleFrom(  
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+              } else {
+                print('3b. Form validation failed or form state is null');
+              }
+            },
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: authViewModel.isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Text('Log In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
       ),
-    );
-  }
+      child: authViewModel.isLoading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : const Text('Log In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+    ),
+  );
+}
 }

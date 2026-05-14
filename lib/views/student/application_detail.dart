@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:student_assistant_app/viewmodels/applications_viewmodel.dart';
+import 'package:student_assistant_app/services/application_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ApplicationDetail extends StatefulWidget {
   const ApplicationDetail({super.key});
@@ -196,7 +198,7 @@ class _ApplicationDetailState extends State<ApplicationDetail> {
                   const SizedBox(height: 4),
                   Text(
                     statusText,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ],
               ),
@@ -295,27 +297,7 @@ class _ApplicationDetailState extends State<ApplicationDetail> {
     );
   }
 
-  Widget _buildDocumentCard() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Supporting Documents',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const Divider(),
-            const ListTile(
-              leading: Icon(Icons.info_outline),
-              title: Text('No documents uploaded yet'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  
 
   void _showDeleteConfirmation(BuildContext context) {
     showDialog(
@@ -340,4 +322,64 @@ class _ApplicationDetailState extends State<ApplicationDetail> {
       ),
     );
   }
+  Widget _buildDocumentCard() {
+  final docUrl = application?['supporting_doc_url']?.toString();
+  
+  if (docUrl == null || docUrl.isEmpty) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              'Supporting Documents',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.info_outline),
+              title: Text('No documents uploaded'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  return Card(
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Supporting Documents',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.description, color: Colors.blue),
+            title: const Text('Uploaded Document'),
+            subtitle: Text(docUrl.split('/').last),  // Show filename from URL
+            trailing: IconButton(
+              icon: const Icon(Icons.download),
+              onPressed: () async {
+                final url = docUrl;
+                if(await canLaunchUrl(Uri.parse(url))){
+                  await launchUrl(Uri.parse(url));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Unable to download document: $url'))
+                  );
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
+}
+

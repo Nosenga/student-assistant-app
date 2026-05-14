@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/application_service.dart';
@@ -16,8 +17,10 @@ class ApplicationsViewModel extends ChangeNotifier {
   Future<bool> submit({
     required String userId,
     required String yearOfStudy,
-    //required bool eligilibilityConfirmed,
-    required List<Map<String, dynamic>> modules,
+    required List<Map<String, dynamic>> modules, 
+    required bool eligibilityConfirmed,
+    String? documentUrl,
+
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -27,8 +30,9 @@ class ApplicationsViewModel extends ChangeNotifier {
       await _applicationService.submitApplication(
         userId: userId,
         yearOfStudy: yearOfStudy,
-      //  eligilibilityConfirmed: eligilibilityConfirmed,
+        eligibilityConfirmed: eligibilityConfirmed,
         modules: modules,
+        documentUrl: documentUrl,
       );
       _isLoading = false;
       notifyListeners();
@@ -38,6 +42,26 @@ class ApplicationsViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  Map<String, dynamic>? _currentApplication;
+  Map<String, dynamic>? get currentApplication => _currentApplication;
+
+   Future<void> loadApplicationDetail(String appId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _applicationService.getApplicationById(appId);
+      _currentApplication = response;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _currentApplication = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -78,11 +102,11 @@ class ApplicationsViewModel extends ChangeNotifier {
   }
 
   //Update status (Admin)
-  Future<void> updateStatus(String applicationID, String newStatus) async {
+  Future<void> updateStatus(String applicationId, String newStatus) async {
     
 
     try {
-      await _applicationService.updateApplicationStatus(applicationID as int, newStatus);
+      await _applicationService.updateApplicationStatus(applicationId, newStatus);
       // After updating status, refresh the applications list
       await loadAllApplications();
       
@@ -98,7 +122,7 @@ class ApplicationsViewModel extends ChangeNotifier {
   //Delete application (Admin)
   Future<void> deleteApplication(String applicationID) async {
     try {
-      await _applicationService.deleteApplication(applicationID as int);
+      await _applicationService.deleteApplication(applicationID);
       // After deleting, refresh the applications list
       await loadAllApplications();
       
@@ -112,7 +136,7 @@ class ApplicationsViewModel extends ChangeNotifier {
   }
 
   Future<bool> updateApplication({
-    required String applicationID,
+    required String applicationId,
     required String yearOfStudy,
     required List<Map<String, dynamic>> modules,
     required bool eligibilityConfirmed,
@@ -123,7 +147,7 @@ class ApplicationsViewModel extends ChangeNotifier {
 
     try{
       await _applicationService.updateApplicationWithModules(
-        applicationID: applicationID,
+        applicationId: applicationId,
         yearOfStudy: yearOfStudy,
         modules: modules,
         eligibilityConfirmed: eligibilityConfirmed,
@@ -138,4 +162,13 @@ class ApplicationsViewModel extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<String> uploadFile({
+    required String userId,
+    required String fileName,
+    required List<int> bytes,
+  }) async{
+    return await _applicationService.uploadFile(userId, fileName, bytes);
+  }
+
 }

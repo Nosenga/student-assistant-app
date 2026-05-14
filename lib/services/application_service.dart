@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -9,15 +10,17 @@ class ApplicationService {
   Future<Map<String, dynamic>> submitApplication({
     required String userId,
     required String yearOfStudy,
-    //required bool eligilibilityConfirmed,
-    required List<Map<String, dynamic>> modules,
+    required List<Map<String, dynamic>> modules, 
+    required bool eligibilityConfirmed,
+    String? documentUrl,
   }) async {
 
     // Insert application data into 'applications' table
     final applicationResponse = await _client.from('applications').insert({
       'user_id': userId,
       'year_of_study': yearOfStudy,
-      //'eligilibility_confirmed': eligilibilityConfirmed,
+      'eligibility_confirmed': eligibilityConfirmed,
+      'supporting_doc_url': documentUrl,
       'status': 'pending',
 
     }).select().single();
@@ -72,40 +75,62 @@ class ApplicationService {
   }
 
   //Update application status
-  Future<void> updateApplicationStatus(int applicationID, String newStatus) async {
+  Future<void> updateApplicationStatus(String applicationId, String newStatus) async {
     await _client
     .from('applications')
     .update({'status': newStatus})
-    .eq('id', applicationID);
+    .eq('id', applicationId);
   }
 
   //Delete application(cascade delete modules)
-  Future<void> deleteApplication(int applicationID) async {
+  Future<void> deleteApplication(String applicationId) async {
     await _client
     .from('applications')
     .delete()
-    .eq('id', applicationID);
+    .eq('id', applicationId);
   }
 
   //Update applications (while pending)
-  Future<void> updateApplication(String applicationID, String newStatus) async{
-    await _client
+  // Future<void> updateApplication(String applicationID, String newStatus) async{
+  //   await _client
+  //   .from('applications')
+  //   .update({'status':newStatus})
+  //   .eq('id', applicationID);
+  // }
+
+  Future<Map<String, dynamic>> getApplicationById(String applicationId) async{
+    final response = await _client
     .from('applications')
-    .update({'status':newStatus})
-    .eq('id', applicationID);
+    .select('*, module_applications(*)')
+    .eq('id', applicationId)
+    .single();
+    return response;
   }
 
   //Upload file to storage
-  Future<String> uploadFile(String userID, String fileName, List<int> bytes) async{
-    final filePath = '$userID/$fileName';
-    await _client.storage.from('supporting_documents').uploadBinary(filePath, Uint8List.fromList(bytes));
-    final publicURL = _client.storage.from('supporting_documents').getPublicUrl(filePath);
-    return publicURL;
+  Future<String> uploadFile(String userId, String fileName, List<int> bytes) async {
+  final filePath = '$userId/$fileName';
+  try {
+    print('📤 Uploading to bucket: supporting_docs');
+    print('📤 File path: $filePath');
+    
+    await _client.storage.from('supporting_docs').uploadBinary(
+      filePath, 
+      Uint8List.fromList(bytes),
+    );
+    
+    final publicUrl = _client.storage.from('supporting_docs').getPublicUrl(filePath);
+    print('✅ Upload successful: $publicUrl');
+    return publicUrl;
+  } catch (e) {
+    print('❌ Storage upload error: $e');
+    rethrow;
   }
+}
 
   //Update application and its modules (used for editing)
   Future<void> updateApplicationWithModules({
-    required String applicationID,
+    required String applicationId,
     required String yearOfStudy,
     required List<Map<String, dynamic>> modules,
     required bool eligibilityConfirmed,
@@ -119,7 +144,7 @@ class ApplicationService {
       'eligibility_confirmed': eligibilityConfirmed,
       
     })
-    .eq('id', applicationID);
+    .eq('id', applicationId);
     print('✅ Application updated successfully');
     }catch(e){
       print('❌ Error updating application: $e');
@@ -130,12 +155,12 @@ class ApplicationService {
     await _client
     .from('module_applications')
     .delete()
-    .eq('application_id', applicationID);
+    .eq('application_id', applicationId);
 
     // Insert new modules
     for (var module in modules){
       await _client.from('module_applications').insert({
-        'application_id':applicationID,
+        'application_id':applicationId,
         'academic_level': module['level'],
         'module_name': module['name'],
         'module_order': module['order'],
