@@ -69,6 +69,17 @@ class ApplicationService {
     return response;
   }
 
+  // Fetch a single application by ID
+  Future<Map<String, dynamic>> getApplicationById(String applicationID) async {
+    return await _client
+        .from('applications')
+        .select('''*, 
+          module_applications(*)
+        ''')
+        .eq('id', applicationID)
+        .single();
+  }
+
   //Update application status
   Future<void> updateApplicationStatus(dynamic applicationID, String newStatus) async {
     await _client
@@ -110,9 +121,7 @@ class ApplicationService {
       
     })
     .eq('id', applicationID);
-    print('✅ Application updated successfully');
     }catch(e){
-      print('❌ Error updating application: $e');
       rethrow;
     }
     

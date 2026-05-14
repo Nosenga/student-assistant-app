@@ -38,15 +38,13 @@ class _ApplicationDetailState extends State<ApplicationDetail> {
     }
 
     try {
-      final response = await Supabase.instance.client
-          .from('applications')
-          .select('*, module_applications(*)')
-          .eq('id', appId)
-          .single();
+      await context.read<ApplicationsViewModel>().loadApplicationDetail(appId);
+      final vm = context.read<ApplicationsViewModel>();
 
       setState(() {
-        application = response as Map<String, dynamic>;
-        _isLoading = false;
+        application = vm.currentApplication;
+        _isLoading = vm.isLoading;
+        _errorMessage = vm.errorMessage;
       });
     } catch (e) {
       setState(() {
@@ -196,7 +194,7 @@ class _ApplicationDetailState extends State<ApplicationDetail> {
                   const SizedBox(height: 4),
                   Text(
                     statusText,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ],
               ),

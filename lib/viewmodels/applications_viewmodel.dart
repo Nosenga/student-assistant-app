@@ -6,10 +6,12 @@ class ApplicationsViewModel extends ChangeNotifier {
   final ApplicationService _applicationService = ApplicationService();
 
   List<Map<String, dynamic>> _applications = [];
+  Map<String, dynamic>? _currentApplication;
   bool _isLoading = false;
   String? _errorMessage;
 
   List<Map<String, dynamic>> get applications => _applications;
+  Map<String, dynamic>? get currentApplication => _currentApplication;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -72,6 +74,23 @@ class ApplicationsViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
     }finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Fetch details for a specific application
+  Future<void> loadApplicationDetail(String applicationID) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _currentApplication = await _applicationService.getApplicationById(applicationID);
+    } catch (e) {
+      _errorMessage = e.toString();
+      _currentApplication = null;
+    } finally {
       _isLoading = false;
       notifyListeners();
     }
