@@ -110,4 +110,32 @@ class ApplicationsViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> updateApplication({
+    required String applicationID,
+    required String yearOfStudy,
+    required List<Map<String, dynamic>> modules,
+    required bool eligibilityConfirmed,
+  }) async{
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try{
+      await _applicationService.updateApplicationWithModules(
+        applicationID: applicationID,
+        yearOfStudy: yearOfStudy,
+        modules: modules,
+        eligibilityConfirmed: eligibilityConfirmed,
+      );
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e){
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }

@@ -103,6 +103,46 @@ class ApplicationService {
     return publicURL;
   }
 
-  //Update application and its modules
+  //Update application and its modules (used for editing)
+  Future<void> updateApplicationWithModules({
+    required String applicationID,
+    required String yearOfStudy,
+    required List<Map<String, dynamic>> modules,
+    required bool eligibilityConfirmed,
+  }) async{
+    // Update application data
+    try{
+      await _client
+    .from('applications')
+    .update({
+      'year_of_study': yearOfStudy,
+      'eligibility_confirmed': eligibilityConfirmed,
+      
+    })
+    .eq('id', applicationID);
+    print('✅ Application updated successfully');
+    }catch(e){
+      print('❌ Error updating application: $e');
+      rethrow;
+    }
+    
+    // Delete existing modules
+    await _client
+    .from('module_applications')
+    .delete()
+    .eq('application_id', applicationID);
+
+    // Insert new modules
+    for (var module in modules){
+      await _client.from('module_applications').insert({
+        'application_id':applicationID,
+        'academic_level': module['level'],
+        'module_name': module['name'],
+        'module_order': module['order'],
+      });
+    }
+
+  
+  }
 
 }

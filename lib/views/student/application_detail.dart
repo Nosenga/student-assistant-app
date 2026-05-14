@@ -71,7 +71,7 @@ class _ApplicationDetailState extends State<ApplicationDetail> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Application deleted successfully.')),
         );
-        Navigator.pop(context);
+        Navigator.pop(context,true);
       }
     } catch (e) {
       if (mounted) {
@@ -115,21 +115,24 @@ class _ApplicationDetailState extends State<ApplicationDetail> {
           if (isPending)
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () {
-                // TODO: Navigate to edit form with application data
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Edit feature coming soon')),
-                );
+              onPressed: () async {
+                // Navigate to the edit screen
+               final result = await Navigator.pushNamed(context, '/application/edit', arguments: application!['id']);
+               if(result == true){
+                //Refresh after returning
+                _loadApplicationDetail();
+               }
               },
             ),
-          if (isPending)
+            if (isPending)
             IconButton(
+              // Delete button
               icon: const Icon(Icons.delete),
               onPressed: () => _showDeleteConfirmation(context),
             ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -16,18 +16,28 @@ class _StudentHomeState extends State<StudentHome> {
 
   @override
 
-  void initState() {
+  void initState(){
     super.initState();
-
-    // load student's applications when the home page is initialized
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      print('Current looged-in user ID: $userId');
-    if (userId != null){
-      context.read<ApplicationsViewModel>().loadMyApplications(userId);
-    }
+    //Delay loading 
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _loadData();
     });
   }
+
+  void _loadData(){
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if(userId!=null){
+      context.read<ApplicationsViewModel>().loadMyApplications(userId);
+    }
+  }
+
+  // @override
+  // void didChangeDependencies(){
+  //   super.didChangeDependencies();
+  //   //Refresh when returning from edit or delete
+  //   _loadData();
+  // }
+
 
 
   //-----------------------------------------------------------
@@ -137,9 +147,16 @@ class _StudentHomeState extends State<StudentHome> {
                         subtitle: Text('Submitted on $createdAt\nModules: $moduleCount'),
                         trailing: const Icon(Icons.arrow_forward_ios),
                         isThreeLine: true,
-                        onTap: () {
+                        onTap: () async{
                           // Navigate to detail screen with application ID
-                          Navigator.pushNamed(context, '/application/detail', arguments: app['id']);
+                          final result = await Navigator.pushNamed(context, '/application/detail', arguments: app['id']);
+                          //Refresh after returning
+                          if(result == true){
+                            final userId = Supabase.instance.client.auth.currentUser?.id;
+                            if(userId !=null){
+                              context.read<ApplicationsViewModel>().loadMyApplications(userId);
+                            }
+                          }
                         },
                     )
                     );

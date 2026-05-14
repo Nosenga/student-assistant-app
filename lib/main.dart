@@ -8,7 +8,7 @@ import 'views/student/student_home.dart';
 import 'views/admin/admin_dashboard.dart';
 import 'views/student/application_form.dart';
 import 'views/student/application_detail.dart';
-import 'viewmodels/applications_viewmodel.dart';
+import 'views/student/edit_application.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,13 +40,14 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
         ),
         
-        initialRoute: '/login',
+        home: const AuthWrapper(),
         routes: {
           '/login': (context) => const LoginView(),
           '/student/home': (context) => const StudentHome(),
           '/admin/dashboard': (context) => const AdminDashboard(),
           '/application/new': (context) => const ApplicationForm(),
           '/application/detail': (context) => const ApplicationDetail(),
+          '/application/edit': (context) => const EditApplication(),
         },
         debugShowCheckedModeBanner: false,
       ),
