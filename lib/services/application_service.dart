@@ -9,7 +9,7 @@ class ApplicationService {
   Future<Map<String, dynamic>> submitApplication({
     required String userId,
     required String yearOfStudy,
-    required List<Map<String, dynamic>> modules,
+    required List<Map<String, dynamic>> modules, required bool eligibilityConfirmed,
   }) async {
 
     // Insert application data into 'applications' table
@@ -71,13 +71,14 @@ class ApplicationService {
 
   // Fetch a single application by ID
   Future<Map<String, dynamic>> getApplicationById(String applicationID) async {
-    return await _client
+    final response = await _client
         .from('applications')
         .select('''*, 
           module_applications(*)
         ''')
         .eq('id', applicationID)
         .single();
+        return response;
   }
 
   //Update application status

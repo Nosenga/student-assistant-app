@@ -199,12 +199,28 @@ class _LoginViewState extends State<LoginView> {
 
                   if (success && context.mounted){
                     print('6. Navigating to student home screen');
+
+                    final userId = authViewModel.getCurrentUser()?.id;
+                    print('7. User ID: $userId');
+
+                    if (userId != null) {
+                      final role = await authViewModel.getUserRole(userId);
+                      print('8. User role:$role');
+
+                      if(role == 'admin'){
+                        print('9. Navigating to admin dashboard');
+                        Navigator.pushReplacementNamed(context, '/admin/dashboard');
+                      } else {
+                        print('10. Navigating to student home');
+                        Navigator.pushReplacementNamed(context, '/student/home');
+                      }
+                    } else{
+                      print('Fallback (It should not happen)');
+                      Navigator.pushReplacementNamed(context, '/student/home');
+                    }
                     _emailController.clear();
                     _passwordController.clear();
-                    Navigator.pushReplacementNamed(context, '/student/home');
-                  } else {
-                    print('3b. Form validation failed or form state is null');
-                  }
+                  } 
                 }
                 
               },

@@ -208,7 +208,7 @@ class _ApplicationFormState extends State<ApplicationForm> {
     final success = await vm.submit(
       userId: userId,
       yearOfStudy: _selectedYear!,
-      //eligilibilityConfirmed: _eligibilityConfirmed,
+      eligibilityConfirmed: _eligibilityConfirmed,
       modules: modules,
       
     );

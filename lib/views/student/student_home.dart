@@ -130,7 +130,7 @@ class _StudentHomeState extends State<StudentHome> {
                 itemBuilder: (context, index) {
                   final app = vm.applications[index];
                   final status = app['status'] ?? 'Pending';
-                  final moduleCount = (app['modules'] as List<dynamic>?)?.length ?? 0;
+                  final moduleCount = (app['module_applications'] as List<dynamic>?)?.length ?? 0;
 
                   final createdAt = app['created_at'] != null
                     ? DateTime.parse(app['created_at']).toString().substring(0,16)

@@ -70,6 +70,7 @@ class _EditApplicationState extends State<EditApplication> {
       .eq('id', appId)
       .single();
 
+
       final modules = response['module_applications'] as List<dynamic>?;
       final year = response['year_of_study']?.toString()?? '';
 
@@ -303,6 +304,3 @@ class _EditApplicationState extends State<EditApplication> {
   }
 
 }
-
-
-

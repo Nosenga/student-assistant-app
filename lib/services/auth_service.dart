@@ -54,6 +54,7 @@ class AuthService {
           .eq('id', userId)
           .single();
           
+      print(' Role from database:${response['role']}'); //Role response from database
 
       return response['role'] as String?;
     } catch (e) {

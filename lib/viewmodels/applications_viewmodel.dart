@@ -18,7 +18,7 @@ class ApplicationsViewModel extends ChangeNotifier {
   Future<bool> submit({
     required String userId,
     required String yearOfStudy,
-    //required bool eligilibilityConfirmed,
+    required bool eligibilityConfirmed,
     required List<Map<String, dynamic>> modules,
   }) async {
     _isLoading = true;
@@ -29,7 +29,7 @@ class ApplicationsViewModel extends ChangeNotifier {
       await _applicationService.submitApplication(
         userId: userId,
         yearOfStudy: yearOfStudy,
-      //  eligilibilityConfirmed: eligilibilityConfirmed,
+        eligibilityConfirmed: eligibilityConfirmed,
         modules: modules,
       );
       _isLoading = false;
@@ -78,6 +78,8 @@ class ApplicationsViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  
 
   // Fetch details for a specific application
   Future<void> loadApplicationDetail(String applicationID) async {

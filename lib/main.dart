@@ -82,7 +82,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       print('Session: $session'); // Add this
   
       if (session != null) {
-        print('User is logged in: ${session.user.email}'); // Add this
+        print('User is logged in: ${session.user.email}'); // Message for the debug console
         // ... rest of code
         return FutureBuilder(
           future: context.read<AuthViewModel>().getUserRole(session.user.id),
@@ -93,9 +93,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
               );
             }
             final role = roleSnapshot.data?? 'student';
-            if(role == 'admin') {
+
+            print('🔍 Detected role: $role'); // Display role on debug console
+           
+            
+            if(role == 'admin'){
               return const AdminDashboard();
-            } else {
+            } 
+            else {
               return const StudentHome();
             }
           },
