@@ -31,16 +31,7 @@ class _StudentHomeState extends State<StudentHome> {
     }
   }
 
-  // @override
-  // void didChangeDependencies(){
-  //   super.didChangeDependencies();
-  //   //Refresh when returning from edit or delete
-  //   _loadData();
-  // }
-
-
-
-  //-----------------------------------------------------------
+ 
 
   @override
   Widget build(BuildContext context) {
